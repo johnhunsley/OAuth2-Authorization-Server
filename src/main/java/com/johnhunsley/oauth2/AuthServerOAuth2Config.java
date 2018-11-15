@@ -18,6 +18,13 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+/**
+ * <p>
+ *     Configuration for the Authorization Server which authorizes a single client stored in memory for demonstration
+ *     of OAuth2 flow purposes. Uses a simple {@link JwtTokenStore}
+ *
+ * </p>
+ */
 @Configuration
 @EnableAuthorizationServer
 @Import(ServerSecurityConfig.class)
@@ -33,18 +40,23 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
         oauthServer.tokenKeyAccess("permitAll()").checkTokenAccess("isAuthenticated()");
     }
 
-    // check the application.yml in the client app
+    /**
+     * A simple in memory store to hold a single {@link org.springframework.security.oauth2.provider.ClientDetails} instance
+     * This would usually be implemented with a {@link org.springframework.security.oauth2.provider.ClientDetailsService} which
+     * reads instances from a persistent store.
+     * @param clients
+     * @throws Exception
+     */
     @Override
     public void configure(final ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory().withClient("myClientId").secret(passwordEncoder().encode("secret"))
                 .authorizedGrantTypes("authorization_code").scopes("user_info")
                 .autoApprove(true)
-                .redirectUris("http://localhost:8082/login")
-        ;
+                .redirectUris("http://localhost:8082/login");
     }
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder(){
+    public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -61,10 +73,14 @@ public class AuthServerOAuth2Config extends AuthorizationServerConfigurerAdapter
         return new JwtTokenStore(accessTokenConverter());
     }
 
+    /**
+     * The signing key should be generated as an Asymmetric Key pair and the public key
+     * given to the AccessTokenConverter in the Resource Server
+     */
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey("123");
+        converter.setSigningKey("ab45hc392K4D7Sx2354");
         return converter;
     }
 
